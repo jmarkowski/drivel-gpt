@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+import torch
+
+
 def read_text_data(source):
     with open(source, 'r', encoding='utf-8') as f:
         text = f.read()
@@ -42,6 +45,15 @@ class Tokenizer():
         return decoded_str
 
 
+def get_data_tensor(tokenizer, text):
+    """
+    Encode the entire text dataset and store it in a tensor.
+    """
+    data_tensor = torch.tensor(tokenizer.encode(text), dtype=torch.long)
+
+    return data_tensor
+
+
 def main():
     input = 'input.txt'
 
@@ -53,6 +65,15 @@ def main():
     t = Tokenizer(chars)
     t.encode('hello world')
     t.decode(t.encode('hello world'))
+
+    data_tensor = get_data_tensor(t, text)
+
+    n = int(0.9*len(data_tensor))
+    training_data = data_tensor[:n]
+    validation_data = data_tensor[n:]
+
+    block_size = 8
+    print(training_data[:block_size+1])
 
 
 if __name__ == '__main__':
