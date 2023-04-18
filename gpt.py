@@ -8,10 +8,21 @@ def read_text_data(source):
     return text
 
 
+def get_text_stats(text):
+    chars = sorted(set(text))
+    vocab_size = len(chars)
+
+    print(f'Chars ({vocab_size}): {"".join(chars)}')
+
+    return chars, vocab_size
+
+
 def main():
     input = 'input.txt'
 
     text = read_text_data(input)
+
+    chars, vocab_size = get_text_stats(text)
 
 
 if __name__ == '__main__':
