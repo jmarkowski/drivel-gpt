@@ -2,6 +2,9 @@
 import torch
 
 
+RANDOM_SEED = 1337
+
+
 def read_text_data(source):
     with open(source, 'r', encoding='utf-8') as f:
         text = f.read()
@@ -72,8 +75,43 @@ def main():
     training_data = data_tensor[:n]
     validation_data = data_tensor[n:]
 
-    block_size = 8
+    batch_size = 32 # how many independent sequences will we process in parallel?
+    block_size = 8 # what is the maximum context length for predictions?
+
     print(training_data[:block_size+1])
+
+    # Deterministic randomness
+    torch.manual_seed(RANDOM_SEED)
+
+    # A kind of "data loader" to get batch of data
+    def get_batch(split):
+        """
+        Generate a small batch of data of inputs x and targets y
+        """
+        data = training_data if split == 'train' else validation_data
+
+        ix = torch.randint(len(data) - block_size, (batch_size,))
+        x = torch.stack([data[i:i+block_size] for i in ix])
+        y = torch.stack([data[i+1:i+block_size+1] for i in ix])
+
+        return x, y
+
+    xb, yb = get_batch('train')
+    print('inputs:')
+    print(xb.shape)
+    print(xb)
+
+    print('targets:')
+    print(yb.shape)
+    print(yb)
+
+    print('----')
+
+    for batch in range(batch_size): # batch dimension
+        for time in range(block_size): # time dimension
+            context = xb[batch, :time+1]
+            target = yb[batch, time]
+            print(f'When input is {context.tolist()} the target: {target}')
 
 
 if __name__ == '__main__':
