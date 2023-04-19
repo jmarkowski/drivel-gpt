@@ -3,6 +3,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 from .attention import Head
 from .attention import MultiHeadAttention
+from .feed_forward import FeedForward
 
 
 class BigramLanguageModel(nn.Module):
@@ -17,6 +18,9 @@ class BigramLanguageModel(nn.Module):
 
         # Self-attention head
         self.sa_heads = MultiHeadAttention(num_heads=4, head_size=n_embed//4, n_embed=n_embed, block_size=block_size)
+
+        # Feed forward network
+        self.feed_fwd = FeedForward(n_embed)
 
         # Language-modeling head
         self.lm_head = nn.Linear(n_embed, vocab_size)
@@ -36,6 +40,7 @@ class BigramLanguageModel(nn.Module):
 
         x = tok_emb + pos_emb # (B, T, C)
         x = self.sa_heads(x) # apply one head of self-attention. (B, T, C)
+        x = self.feed_fwd(x) # (B, T, C)
 
         logits = self.lm_head(x) # (B, T, C=vocab_size)
         # The logits form a (Batch, Time, Channel) tensor
