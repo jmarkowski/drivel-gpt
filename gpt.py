@@ -142,6 +142,39 @@ def main():
     # lZJ XQc?:s:HEzEnXalEPklcPU cL'DpdLCafBheH
     print(f'Generated text: {generate_text(t, model, 100)}')
 
+    # Create a PyTorch optimizer
+    # Available options include, for example SGD (stochastic gradient descent)
+    # or AdamW, which is a more popular and advanced optimizer that works
+    # extremely well.
+    learning_rate = 1e-3 # typically 3e-4 is good, but for small neural networks
+                         # we can use much higher learning rates.
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+
+    # Typical training loop ...
+    batch_size = 32
+    steps = 1000 # Increase for good results ... Increasing it reduces the loss.
+    for _ in range(steps):
+        # Sample a batch of data
+        xb, yb = get_batch('train')
+
+        # Evaluate the loss
+        _logits, loss = model(xb, yb)
+        optimizer.zero_grad(set_to_none=True)
+        loss.backward()
+        optimizer.step()
+
+    print(f'Loss from running optimizer: {loss.item()}')
+
+    # With steps=100000, we get something closer to our data...
+    #
+    # Generated text:
+    # Wigauther LLIZARI gatho ftcohanghorad
+    # Age cur, aur hayis;
+    # Wheano?
+    # QUpe.
+    # N otord, fane hiler, withy f
+    print(f'Generated text: {generate_text(t, model, 100)}')
+
 
 if __name__ == '__main__':
     main()
