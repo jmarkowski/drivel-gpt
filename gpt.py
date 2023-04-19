@@ -58,6 +58,18 @@ def get_data_tensor(tokenizer, text):
     return data_tensor
 
 
+def generate_text(tokenizer, model, num_tokens):
+    # Create a starting tensor, that we use to "kick off" the generation.
+    # 1,1 corresponds to the newline character, which is a reasonable start(?)
+    batch = 1
+    time = 1
+    idx = torch.zeros((batch, time), dtype=torch.long)
+
+    model_output = model.generate(idx, max_new_tokens=num_tokens)[0].tolist()
+
+    return tokenizer.decode(model_output)
+
+
 def main():
     input = 'input.txt'
 
@@ -121,6 +133,14 @@ def main():
 
     print(logits.shape)
     print(loss)
+
+    # Let's create our first generation!!! It looks like garbage though,
+    # because our model is totally random (it hasn't been trained!).
+    #
+    # Generated text:
+    # lfJeukRuaRJKXAYtXzfJ:HEPiu--sDioi;ILCo3pHNTmDwJsfheKRxZCFs
+    # lZJ XQc?:s:HEzEnXalEPklcPU cL'DpdLCafBheH
+    print(f'Generated text: {generate_text(t, model, 100)}')
 
 
 if __name__ == '__main__':
