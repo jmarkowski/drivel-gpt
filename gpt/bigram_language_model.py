@@ -5,19 +5,33 @@ from torch.nn import functional as F
 
 class BigramLanguageModel(nn.Module):
 
-    def __init__(self, vocab_size, device='cpu'):
+    def __init__(self, block_size, vocab_size, n_embed, device='cpu'):
         super().__init__()
 
         # Each token directly reads off the logits for the next token from a
         # lookup table.
-        self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
+        self.token_embedding_table = nn.Embedding(vocab_size, n_embed)
+        self.position_embedding_table = nn.Embedding(block_size, n_embed)
+
+        # Language-modeling head
+        self.lm_head = nn.Linear(n_embed, vocab_size)
+
         self.device = device
+        self.block_size = block_size
 
     def forward(self, idx, targets=None):
         # idx and targets are both (B,T) tensor of integers
+        B, T = idx.shape
+
+        k = torch.arange(T, device=self.device) # Integers from 0 to T-1
 
         # logits are "scores" for the next character in the sequence
-        logits = self.token_embedding_table(idx)
+        tok_emb = self.token_embedding_table(idx) # (B, T, C=n_embed)
+        pos_emb = self.position_embedding_table(k) # (T, C)
+
+        x = tok_emb + pos_emb # (B, T, C)
+
+        logits = self.lm_head(x) # (B, T, C=vocab_size)
         # The logits form a (Batch, Time, Channel) tensor
         # In our example, that would be  (4, 8, 65=vocab_size)
 
@@ -42,8 +56,11 @@ class BigramLanguageModel(nn.Module):
         (B, T+1 [+2, +3, ..., +max_new_tokens]) -> This is the generation part.
         """
         for _ in range(max_new_tokens):
+            # Crop the idx that is fed to forward block
+            idx_cropped = idx[:, -self.block_size:]
+
             # Get the predictions, but ignore the loss.
-            logits, _loss = self(idx)
+            logits, _loss = self(idx_cropped)
 
             # Focus only on the last time step, we pluck out the last element
             # in the time direction (because those are the predictions for what

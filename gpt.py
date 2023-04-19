@@ -113,9 +113,12 @@ def main():
 
     xb, yb = get_batch('train')
 
+    # Number of embedding dimensions
+    n_embed = 32
+
     # Feed the tensor data into a neural network. The Bigram Language model is
     # the simplest neural network.
-    model = BigramLanguageModel(vocab_size, device=DEVICE)
+    model = BigramLanguageModel(block_size, vocab_size, n_embed, device=DEVICE)
 
     m = model.to(DEVICE) # move model parameters to DEVICE
 
