@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+from .attention import Head
 
 
 class BigramLanguageModel(nn.Module):
@@ -12,6 +13,9 @@ class BigramLanguageModel(nn.Module):
         # lookup table.
         self.token_embedding_table = nn.Embedding(vocab_size, n_embed)
         self.position_embedding_table = nn.Embedding(block_size, n_embed)
+
+        # Self-attention head
+        self.sa_head = Head(head_size=n_embed, n_embed=n_embed, block_size=block_size)
 
         # Language-modeling head
         self.lm_head = nn.Linear(n_embed, vocab_size)
@@ -30,6 +34,7 @@ class BigramLanguageModel(nn.Module):
         pos_emb = self.position_embedding_table(k) # (T, C)
 
         x = tok_emb + pos_emb # (B, T, C)
+        x = self.sa_head(x) # apply one head of self-attention. (B, T, C)
 
         logits = self.lm_head(x) # (B, T, C=vocab_size)
         # The logits form a (Batch, Time, Channel) tensor
