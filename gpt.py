@@ -144,7 +144,7 @@ def main():
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 
     eval_iters = 200
-    eval_interval = 100
+    eval_interval = 1000
 
     # improve memory efficiency by telling it we will not be going backwards
     @torch.no_grad()
@@ -167,8 +167,8 @@ def main():
 
     # Typical training loop ...
     batch_size = 32
-    steps = 1000 # Increase for good results ... Increasing it reduces the loss.
-    for s in range(steps):
+    max_iterations = 10000 # Increase for good results ... Increasing it reduces the loss.
+    for s in range(max_iterations):
         if s % eval_interval == 0:
             losses = estimate_loss()
             t_loss = losses['train']
@@ -187,7 +187,7 @@ def main():
 
     print(f'Loss from running optimizer: {loss.item()}')
 
-    # With steps=100000, we get something closer to our data...
+    # With max_iterations=10000, we get something closer to our data...
     #
     # Generated text:
     # Wigauther LLIZARI gatho ftcohanghorad
