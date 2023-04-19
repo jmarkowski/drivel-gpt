@@ -5,12 +5,13 @@ from torch.nn import functional as F
 
 class BigramLanguageModel(nn.Module):
 
-    def __init__(self, vocab_size):
+    def __init__(self, vocab_size, device='cpu'):
         super().__init__()
 
         # Each token directly reads off the logits for the next token from a
         # lookup table.
         self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
+        self.device = device
 
     def forward(self, idx, targets=None):
         # idx and targets are both (B,T) tensor of integers

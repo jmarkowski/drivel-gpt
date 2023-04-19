@@ -4,6 +4,7 @@ from gpt import BigramLanguageModel
 
 
 RANDOM_SEED = 1337
+DEVICE = 'cpu' # 'cpu' or 'mps' (M1 mac specific)
 
 
 def read_text_data(source):
@@ -63,7 +64,7 @@ def generate_text(tokenizer, model, num_tokens):
     # 1,1 corresponds to the newline character, which is a reasonable start(?)
     batch = 1
     time = 1
-    idx = torch.zeros((batch, time), dtype=torch.long)
+    idx = torch.zeros((batch, time), dtype=torch.long, device=DEVICE)
 
     model_output = model.generate(idx, max_new_tokens=num_tokens)[0].tolist()
 
@@ -107,6 +108,9 @@ def main():
         x = torch.stack([data[i:i+block_size] for i in ix])
         y = torch.stack([data[i+1:i+block_size+1] for i in ix])
 
+        # Move the data to the DEVICE
+        x, y = x.to(DEVICE), y.to(DEVICE)
+
         return x, y
 
     xb, yb = get_batch('train')
@@ -128,7 +132,8 @@ def main():
 
     # Feed the tensor data into a neural network. The Bigram Language model is
     # the simplest neural network.
-    model = BigramLanguageModel(vocab_size)
+    model = BigramLanguageModel(vocab_size, device=DEVICE)
+    m = model.to(DEVICE) # move model parameters to DEVICE
     logits, loss = model(xb, yb)
 
     print(logits.shape)
@@ -140,7 +145,7 @@ def main():
     # Generated text:
     # lfJeukRuaRJKXAYtXzfJ:HEPiu--sDioi;ILCo3pHNTmDwJsfheKRxZCFs
     # lZJ XQc?:s:HEzEnXalEPklcPU cL'DpdLCafBheH
-    print(f'Generated text: {generate_text(t, model, 100)}')
+    print(f'Generated text: {generate_text(t, m, 100)}')
 
     # Create a PyTorch optimizer
     # Available options include, for example SGD (stochastic gradient descent)
@@ -173,7 +178,7 @@ def main():
     # Wheano?
     # QUpe.
     # N otord, fane hiler, withy f
-    print(f'Generated text: {generate_text(t, model, 100)}')
+    print(f'Generated text: {generate_text(t, m, 500)}')
 
 
 if __name__ == '__main__':
