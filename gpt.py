@@ -92,8 +92,6 @@ def main():
     batch_size = 32 # how many independent sequences will we process in parallel?
     block_size = 64 # what is the maximum context length for predictions?
 
-    print(training_data[:block_size+1])
-
     # Deterministic randomness
     torch.manual_seed(RANDOM_SEED)
 
@@ -114,30 +112,12 @@ def main():
         return x, y
 
     xb, yb = get_batch('train')
-    print('inputs:')
-    print(xb.shape)
-    print(xb)
-
-    print('targets:')
-    print(yb.shape)
-    print(yb)
-
-    print('----')
-
-    for batch in range(batch_size): # batch dimension
-        for time in range(block_size): # time dimension
-            context = xb[batch, :time+1]
-            target = yb[batch, time]
-            print(f'When input is {context.tolist()} the target: {target}')
 
     # Feed the tensor data into a neural network. The Bigram Language model is
     # the simplest neural network.
     model = BigramLanguageModel(vocab_size, device=DEVICE)
     m = model.to(DEVICE) # move model parameters to DEVICE
     logits, loss = model(xb, yb)
-
-    print(logits.shape)
-    print(loss)
 
     # Let's create our first generation!!! It looks like garbage though,
     # because our model is totally random (it hasn't been trained!).
