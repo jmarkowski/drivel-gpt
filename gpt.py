@@ -155,10 +155,39 @@ def main():
                          # we can use much higher learning rates.
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 
+    eval_iters = 200
+    eval_interval = 100
+
+    # improve memory efficiency by telling it we will not be going backwards
+    @torch.no_grad()
+    def estimate_loss():
+        out = {}
+
+        model.eval()
+        for split in ['train', 'val']:
+            losses = torch.zeros(eval_iters)
+            for k in range(eval_iters):
+                X, Y = get_batch(split)
+                logs, loss = model(X, Y)
+                losses[k] = loss.item()
+
+            out[split] = losses.mean()
+
+        model.train()
+
+        return out
+
     # Typical training loop ...
     batch_size = 32
     steps = 1000 # Increase for good results ... Increasing it reduces the loss.
-    for _ in range(steps):
+    for s in range(steps):
+        if s % eval_interval == 0:
+            losses = estimate_loss()
+            t_loss = losses['train']
+            v_loss = losses['val']
+
+            print(f'Step {s}: training loss {t_loss:.4f}, validation loss {v_loss:.4f}');
+
         # Sample a batch of data
         xb, yb = get_batch('train')
 
