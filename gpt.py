@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import torch
+from gpt import BigramLanguageModel
 
 
 RANDOM_SEED = 1337
@@ -112,6 +113,14 @@ def main():
             context = xb[batch, :time+1]
             target = yb[batch, time]
             print(f'When input is {context.tolist()} the target: {target}')
+
+    # Feed the tensor data into a neural network. The Bigram Language model is
+    # the simplest neural network.
+    model = BigramLanguageModel(vocab_size)
+    logits, loss = model(xb, yb)
+
+    print(logits.shape)
+    print(loss)
 
 
 if __name__ == '__main__':
