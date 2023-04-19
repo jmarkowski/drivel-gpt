@@ -30,3 +30,17 @@ class Head(nn.Module):
         out = weights @ v # (B, T, T) @ (B, T, C) -> (B, T, C)
 
         return out
+
+
+class MultiHeadAttention(nn.Module):
+    """
+    Multiple heads of self-attention in parallel.
+    """
+
+    def __init__(self, num_heads, head_size, n_embed, block_size):
+        super().__init__()
+        self.heads = nn.ModuleList([Head(head_size, n_embed, block_size) for _ in range(num_heads)])
+
+    def forward(self, x):
+        # Concatenate over the Channel (C) dimension
+        return torch.cat([h(x) for h in self.heads], dim=-1)
