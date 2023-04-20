@@ -14,6 +14,7 @@ class FeedForward(nn.Module):
         self.net = nn.Sequential(
                 nn.Linear(n_embed, n_embed),
                 nn.ReLU(),
+                nn.Linear(n_embed, n_embed), # Projection layer
             )
 
     def forward(self, x):

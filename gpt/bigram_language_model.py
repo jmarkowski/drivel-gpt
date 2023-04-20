@@ -27,8 +27,8 @@ class Block(nn.Module):
         self.feed_fwd = FeedForward(n_embed)
 
     def forward(self, x):
-        x = self.sa(x)
-        x = self.feed_fwd(x)
+        x = x + self.sa(x)
+        x = x + self.feed_fwd(x)
         return x
 
 
