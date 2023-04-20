@@ -6,6 +6,32 @@ from .attention import MultiHeadAttention
 from .feed_forward import FeedForward
 
 
+class Block(nn.Module):
+    """
+    Transformer block: Communication (with multi-head attention) followed by computation (feed forward)
+    """
+
+    def __init__(self, block_size, n_embed, num_heads):
+        """
+        n_embed: embedding dimension
+        n_head: the number of heads we'd like
+        """
+        super().__init__()
+
+        head_size = n_embed // num_heads
+
+        # Communication is done with Multiple Self-Attention Heads
+        self.sa = MultiHeadAttention(num_heads=num_heads, head_size=head_size, n_embed=n_embed, block_size=block_size)
+
+        # Computation is done with a Feed Forward network
+        self.feed_fwd = FeedForward(n_embed)
+
+    def forward(self, x):
+        x = self.sa(x)
+        x = self.feed_fwd(x)
+        return x
+
+
 class BigramLanguageModel(nn.Module):
 
     def __init__(self, block_size, vocab_size, n_embed, device='cpu'):
