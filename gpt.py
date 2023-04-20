@@ -76,7 +76,7 @@ def main():
     validation_data = data_tensor[n:]
 
     batch_size = 32 # how many independent sequences will we process in parallel?
-    block_size = 8 # what is the maximum context length for predictions?
+    block_size = 64 # what is the maximum context length for predictions?
 
     print(training_data[:block_size+1])
 
