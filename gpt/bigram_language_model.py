@@ -44,7 +44,15 @@ class Block(nn.Module):
 
 class BigramLanguageModel(nn.Module):
 
-    def __init__(self, block_size, vocab_size, n_embed, dropout_amount, device='cpu'):
+    def __init__(self,
+                 n_layers,
+                 n_heads,
+                 block_size,
+                 vocab_size,
+                 n_embed,
+                 dropout_amount,
+                 device='cpu',
+            ):
         super().__init__()
 
         # Each token directly reads off the logits for the next token from a
@@ -53,11 +61,15 @@ class BigramLanguageModel(nn.Module):
         self.position_embedding_table = nn.Embedding(block_size, n_embed)
 
         self.blocks = nn.Sequential(
-            Block(block_size, n_embed, num_heads=4, dropout_amount=dropout_amount),
-            Block(block_size, n_embed, num_heads=4, dropout_amount=dropout_amount),
-            Block(block_size, n_embed, num_heads=4, dropout_amount=dropout_amount),
-            nn.LayerNorm(n_embed),
+            *[
+                Block(block_size,
+                      n_embed,
+                      num_heads=n_heads,
+                      dropout_amount=dropout_amount,
+                    ) for _ in range(n_layers)
+              ]
         )
+        nn.LayerNorm(n_embed),
 
         # Language-modeling head
         self.lm_head = nn.Linear(n_embed, vocab_size)

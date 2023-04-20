@@ -118,9 +118,22 @@ def main():
 
     dropout_amount = 0.2
 
+    # How many layers of the transformer blocks are we going to have?
+    n_layers = 3
+
+    n_heads = 4
+
     # Feed the tensor data into a neural network. The Bigram Language model is
     # the simplest neural network.
-    model = BigramLanguageModel(block_size, vocab_size, n_embed, dropout_amount, device=DEVICE)
+    model = BigramLanguageModel(
+            n_layers,
+            n_heads,
+            block_size,
+            vocab_size,
+            n_embed,
+            dropout_amount,
+            device=DEVICE,
+        )
 
     m = model.to(DEVICE) # move model parameters to DEVICE
 
