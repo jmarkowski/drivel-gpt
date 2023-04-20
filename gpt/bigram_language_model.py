@@ -11,7 +11,7 @@ class Block(nn.Module):
     Transformer block: Communication (with multi-head attention) followed by computation (feed forward)
     """
 
-    def __init__(self, block_size, n_embed, num_heads):
+    def __init__(self, block_size, n_embed, num_heads, dropout_amount):
         """
         n_embed: embedding dimension
         n_head: the number of heads we'd like
@@ -21,10 +21,16 @@ class Block(nn.Module):
         head_size = n_embed // num_heads
 
         # Communication is done with Multiple Self-Attention Heads
-        self.sa = MultiHeadAttention(num_heads=num_heads, head_size=head_size, n_embed=n_embed, block_size=block_size)
+        self.sa = MultiHeadAttention(
+                num_heads=num_heads,
+                head_size=head_size,
+                n_embed=n_embed,
+                block_size=block_size,
+                dropout_amount=dropout_amount,
+            )
 
         # Computation is done with a Feed Forward network
-        self.feed_fwd = FeedForward(n_embed)
+        self.feed_fwd = FeedForward(n_embed, dropout_amount)
 
         # Layer normalization for normalizing our features
         self.ln1 = nn.LayerNorm(n_embed)
@@ -38,7 +44,7 @@ class Block(nn.Module):
 
 class BigramLanguageModel(nn.Module):
 
-    def __init__(self, block_size, vocab_size, n_embed, device='cpu'):
+    def __init__(self, block_size, vocab_size, n_embed, dropout_amount, device='cpu'):
         super().__init__()
 
         # Each token directly reads off the logits for the next token from a
@@ -47,9 +53,9 @@ class BigramLanguageModel(nn.Module):
         self.position_embedding_table = nn.Embedding(block_size, n_embed)
 
         self.blocks = nn.Sequential(
-            Block(block_size, n_embed, num_heads=4),
-            Block(block_size, n_embed, num_heads=4),
-            Block(block_size, n_embed, num_heads=4),
+            Block(block_size, n_embed, num_heads=4, dropout_amount=dropout_amount),
+            Block(block_size, n_embed, num_heads=4, dropout_amount=dropout_amount),
+            Block(block_size, n_embed, num_heads=4, dropout_amount=dropout_amount),
             nn.LayerNorm(n_embed),
         )
 
