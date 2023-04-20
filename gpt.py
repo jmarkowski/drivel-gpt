@@ -116,7 +116,12 @@ def main():
     # Feed the tensor data into a neural network. The Bigram Language model is
     # the simplest neural network.
     model = BigramLanguageModel(vocab_size, device=DEVICE)
+
     m = model.to(DEVICE) # move model parameters to DEVICE
+
+    n_params = sum(p.numel() for p in m.parameters())
+    print(f'N_params = {n_params}')
+
     logits, loss = model(xb, yb)
 
     # Let's create our first generation!!! It looks like garbage though,
