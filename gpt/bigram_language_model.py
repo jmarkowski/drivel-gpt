@@ -26,9 +26,13 @@ class Block(nn.Module):
         # Computation is done with a Feed Forward network
         self.feed_fwd = FeedForward(n_embed)
 
+        # Layer normalization for normalizing our features
+        self.ln1 = nn.LayerNorm(n_embed)
+        self.ln2 = nn.LayerNorm(n_embed)
+
     def forward(self, x):
-        x = x + self.sa(x)
-        x = x + self.feed_fwd(x)
+        x = x + self.sa(self.ln1(x))
+        x = x + self.feed_fwd(self.ln2(x))
         return x
 
 
@@ -46,6 +50,7 @@ class BigramLanguageModel(nn.Module):
             Block(block_size, n_embed, num_heads=4),
             Block(block_size, n_embed, num_heads=4),
             Block(block_size, n_embed, num_heads=4),
+            nn.LayerNorm(n_embed),
         )
 
         # Language-modeling head
