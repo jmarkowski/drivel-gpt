@@ -6,6 +6,37 @@ from gpt import BigramLanguageModel
 RANDOM_SEED = 1337
 DEVICE = 'cpu' # 'cpu' or 'mps' (M1 mac specific)
 
+################################################################################
+# Configuration parameters
+################################################################################
+# How many independent sequences will we process in parallel?
+BATCH_SIZE = 4
+
+# Number of characters of context to use for predictions
+BLOCK_SIZE = 64
+
+# Increase for good results ... Increasing it reduces the loss.
+MAX_TRAINING_ITERATIONS = 10000
+
+EVAL_INTERVAL = 1000
+EVAL_ITERATIONS = 200
+
+# Typically 3e-4 is good, but for small neural networks we can use much higher
+# learning rates.
+LEARNING_RATE = 1e-3
+
+# Number of embedding dimensions (n_embed)
+D_MODEL = 32
+
+# HEAD_SIZE = D_HEAD = D_MODEL // NUM_HEADS
+NUM_HEADS = 4
+
+# The number of layers of the transformer blocks we will have
+NUM_LAYERS = 3
+
+# Proportion of intermediate calculations that are dropped out
+DROPOUT_RATE = 0.2
+################################################################################
 
 def read_text_data(source):
     with open(source, 'r', encoding='utf-8') as f:
@@ -89,9 +120,6 @@ def main():
     training_data = data_tensor[:n]
     validation_data = data_tensor[n:]
 
-    batch_size = 32 # how many independent sequences will we process in parallel?
-    block_size = 64 # what is the maximum context length for predictions?
-
     # Deterministic randomness
     torch.manual_seed(RANDOM_SEED)
 
@@ -102,9 +130,9 @@ def main():
         """
         data = training_data if split == 'train' else validation_data
 
-        ix = torch.randint(len(data) - block_size, (batch_size,))
-        x = torch.stack([data[i:i+block_size] for i in ix])
-        y = torch.stack([data[i+1:i+block_size+1] for i in ix])
+        ix = torch.randint(len(data) - BLOCK_SIZE, (BATCH_SIZE,))
+        x = torch.stack([data[i:i+BLOCK_SIZE] for i in ix])
+        y = torch.stack([data[i+1:i+BLOCK_SIZE+1] for i in ix])
 
         # Move the data to the DEVICE
         x, y = x.to(DEVICE), y.to(DEVICE)
@@ -113,25 +141,15 @@ def main():
 
     xb, yb = get_batch('train')
 
-    # Number of embedding dimensions
-    n_embed = 32
-
-    dropout_amount = 0.2
-
-    # How many layers of the transformer blocks are we going to have?
-    n_layers = 3
-
-    n_heads = 4
-
     # Feed the tensor data into a neural network. The Bigram Language model is
     # the simplest neural network.
     model = BigramLanguageModel(
-            n_layers,
-            n_heads,
-            block_size,
-            vocab_size,
-            n_embed,
-            dropout_amount,
+            n_layers=NUM_LAYERS,
+            n_heads=NUM_HEADS,
+            block_size=BLOCK_SIZE,
+            vocab_size=vocab_size,
+            n_embed=D_MODEL,
+            dropout_amount=DROPOUT_RATE,
             device=DEVICE,
         )
 
@@ -154,12 +172,7 @@ def main():
     # Available options include, for example SGD (stochastic gradient descent)
     # or AdamW, which is a more popular and advanced optimizer that works
     # extremely well.
-    learning_rate = 1e-3 # typically 3e-4 is good, but for small neural networks
-                         # we can use much higher learning rates.
-    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-
-    eval_iters = 200
-    eval_interval = 1000
+    optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
 
     # improve memory efficiency by telling it we will not be going backwards
     @torch.no_grad()
@@ -168,8 +181,8 @@ def main():
 
         model.eval()
         for split in ['train', 'val']:
-            losses = torch.zeros(eval_iters)
-            for k in range(eval_iters):
+            losses = torch.zeros(EVAL_ITERATIONS)
+            for k in range(EVAL_ITERATIONS):
                 X, Y = get_batch(split)
                 logs, loss = model(X, Y)
                 losses[k] = loss.item()
@@ -181,10 +194,9 @@ def main():
         return out
 
     # Typical training loop ...
-    batch_size = 32
-    max_iterations = 10000 # Increase for good results ... Increasing it reduces the loss.
+    max_iterations = MAX_TRAINING_ITERATIONS
     for s in range(max_iterations):
-        if s % eval_interval == 0:
+        if s % EVAL_INTERVAL == 0:
             losses = estimate_loss()
             t_loss = losses['train']
             v_loss = losses['val']
