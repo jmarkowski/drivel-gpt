@@ -8,12 +8,14 @@ class Head(nn.Module):
     One head of self-attention
     """
 
-    def __init__(self, head_size, n_embed, block_size):
+    def __init__(self, head_size, n_embed, block_size, dropout_amount):
         super().__init__()
         self.key = nn.Linear(n_embed, head_size, bias=False)
         self.query = nn.Linear(n_embed, head_size, bias=False)
         self.value = nn.Linear(n_embed, head_size, bias=False)
         self.register_buffer('tril', torch.tril(torch.ones(block_size, block_size)))
+
+        self.dropout = nn.Dropout(dropout_amount)
 
     def forward(self, x):
         B,T,C = x.shape
@@ -24,6 +26,7 @@ class Head(nn.Module):
         weights = q @ k.transpose(-2,-1) * C**-0.5 # (B, T, C) @ (B, C, T) -> (B, T, T)
         weights = weights.masked_fill(self.tril[:T, :T] == 0, float('-inf')) # (B, T, T)
         weights = F.softmax(weights, dim=-1) # (B, T, T)
+        weights = self.dropout(weights) # prevent nn from overfitting
 
         # Perform the weighted aggregation of the values
         v = self.value(x) # (B,T,C)
@@ -37,9 +40,9 @@ class MultiHeadAttention(nn.Module):
     Multiple heads of self-attention in parallel.
     """
 
-    def __init__(self, num_heads, head_size, n_embed, block_size):
+    def __init__(self, num_heads, head_size, n_embed, block_size, dropout_amount):
         super().__init__()
-        self.heads = nn.ModuleList([Head(head_size, n_embed, block_size) for _ in range(num_heads)])
+        self.heads = nn.ModuleList([Head(head_size, n_embed, block_size, dropout_amount) for _ in range(num_heads)])
         self.proj = nn.Linear(n_embed, n_embed)
 
     def forward(self, x):
