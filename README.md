@@ -14,6 +14,25 @@ trained on, and often times, will just be gibberish. Hence, the name :)
 
 To understand and appreciate how a GPT model works under the hood.
 
+## Sample Output
+
+```
+QUEEN:
+Thou wranst I am dear with'd, in like a speak;
+The dring wife-hear'd unstrard, whet hereing with
+where broud them; menny our wringled canspess;
+for here with like her cheep? Gremion, my solurand,
+Good lord, a truip gateny and you.
+
+DUKE VINCENTIO:
+But by oyid miney rey, was that I no, 'That with lown'd
+Deling I disacious nursed spakes on nurbland sts.
+
+POMPEYON:
+And, by The warm, lord! darchs'-moth and i
+
+```
+
 ## Installation
 
 ### Install Conda
