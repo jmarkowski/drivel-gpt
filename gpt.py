@@ -81,15 +81,6 @@ class Tokenizer():
         return decoded_str
 
 
-def get_data_tensor(tokenizer, text):
-    """
-    Encode the entire text dataset and store it in a tensor.
-    """
-    data_tensor = torch.tensor(tokenizer.encode(text), dtype=torch.long)
-
-    return data_tensor
-
-
 def generate_text(tokenizer, model, num_tokens):
     # Create a starting tensor, that we use to "kick off" the generation.
     # 1,1 corresponds to the newline character, which is a reasonable start(?)
@@ -109,12 +100,10 @@ def main():
 
     chars, vocab_size = get_text_stats(text)
 
-    # Create tokenizer
-    t = Tokenizer(chars)
-    t.encode('hello world')
-    t.decode(t.encode('hello world'))
+    tokenizer = Tokenizer(chars)
 
-    data_tensor = get_data_tensor(t, text)
+    # Encode the entire text dataset and store it in a tensor.
+    data_tensor = torch.tensor(tokenizer.encode(text), dtype=torch.long)
 
     n = int(0.9*len(data_tensor))
     training_data = data_tensor[:n]
@@ -139,8 +128,6 @@ def main():
 
         return x, y
 
-    xb, yb = get_batch('train')
-
     # Feed the tensor data into a neural network. The Bigram Language model is
     # the simplest neural network.
     model = BigramLanguageModel(
@@ -157,16 +144,6 @@ def main():
 
     n_params = sum(p.numel() for p in m.parameters())
     print(f'N_params = {n_params}')
-
-    logits, loss = model(xb, yb)
-
-    # Let's create our first generation!!! It looks like garbage though,
-    # because our model is totally random (it hasn't been trained!).
-    #
-    # Generated text:
-    # lfJeukRuaRJKXAYtXzfJ:HEPiu--sDioi;ILCo3pHNTmDwJsfheKRxZCFs
-    # lZJ XQc?:s:HEzEnXalEPklcPU cL'DpdLCafBheH
-    print(f'Generated text: {generate_text(t, m, 100)}')
 
     # Create a PyTorch optimizer
     # Available options include, for example SGD (stochastic gradient descent)
@@ -222,7 +199,7 @@ def main():
     # Wheano?
     # QUpe.
     # N otord, fane hiler, withy f
-    print(f'Generated text: {generate_text(t, m, 500)}')
+    print(f'Generated text: {generate_text(tokenizer, m, 500)}')
 
 
 if __name__ == '__main__':
